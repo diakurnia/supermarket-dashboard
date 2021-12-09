@@ -1,9 +1,9 @@
 import streamlit as st
 import visualization, hypothesis
 # from PIL import Image
-st.set_page_config(page_title="Supermarket Dashboard", 
-                        page_icon=":bar_chart:", 
-                        layout="wide")
+# st.set_page_config(page_title="Supermarket Dashboard", 
+#                         page_icon=":bar_chart:", 
+#                         layout="wide")
 def app():
     st.markdown("<h1 style='text-align: center;'>Hi, Welcome to Supermarket Analysist Dashboard</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='text-align: center;'>This Dashboard Contains of Hypothesist Testing and Customer Analysist Dashboard</h2>", unsafe_allow_html=True)

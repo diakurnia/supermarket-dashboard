@@ -6,7 +6,6 @@ import numpy as np
 import plotly.express as px
 import matplotlib.ticker as mtick
 from textwrap import wrap
-# %matplotlib inline
 
 def app():
     pd.set_option('display.max_columns', 40)
@@ -14,6 +13,13 @@ def app():
 
    
     # --- Load Data From CSV ----
+    @st.cache()
+    def get_data_from_csv():
+        df = pd.read_csv('data/supermarket_clean.csv')
+        return df
+
+    df = get_data_from_csv()
+
     fig = plt.figure(figsize=(6,3),dpi=150)
     gs = fig.add_gridspec(1, 1)
     gs.update(wspace=0.2, hspace=0.4)
@@ -23,19 +29,20 @@ def app():
     fig.patch.set_facecolor(background_color) # figure background color
     ax0.set_facecolor(background_color) 
 
-    ax0.text(1.167,0.85,"Customer Analysist Dashboard in Q1",color='#323232',fontsize=28, fontweight='bold', fontfamily='monospace',ha='center')
+    # --- Quick fact result ---
+    ax0.text(1.167,0.85,"Supermarket Customer Analysist Dashboard in Q1",color='#323232',fontsize=28, fontweight='bold', fontfamily='monospace',ha='center')
     ax0.text(1.13,-0.35,"stand-out facts",color='lightgray',fontsize=28, fontweight='bold', fontfamily='monospace',ha='center')
 
-    ax0.text(0,0.4,"$400",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
-    ax0.text(0,0.1,"Average Spending",color='gray',fontsize=15, fontfamily='monospace',ha='center')
+    ax0.text(0,0.4,"$323",color='#39b3b3',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(0,0.1,"Average Daily Spending",color='gray',fontsize=15, fontfamily='monospace',ha='center')
 
-    ax0.text(0.77,0.4,"7 of top 10",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(0.77,0.4,"6.97",color='#39b3b3',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
     ax0.text(0.75,0.1,"Average Rating",color='gray',fontsize=15, fontfamily='monospace',ha='center')
 
-    ax0.text(1.5,0.4,"5 - 7 P.M",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(1.5,0.4,"5 - 7 p.m",color='#39b3b3',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
     ax0.text(1.5,0.1,"Peak Hour",color='gray',fontsize=15, fontfamily='monospace',ha='center')
 
-    ax0.text(2.25,0.4,"E-wallet",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(2.25,0.4,"E-wallet",color='#39b3b3',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
     ax0.text(2.25,0.1,"Most Payment",color='gray',fontsize=15, fontfamily='monospace',ha='center')
 
     ax0.set_yticklabels('')
@@ -46,27 +53,19 @@ def app():
         ax0.spines[s].set_visible(False)
         
     import matplotlib.lines as lines
-    l1 = lines.Line2D([0.15, 1.95], [0.67, 0.67], transform=fig.transFigure, figure=fig,color = 'gray', linestyle='-',linewidth = 1.1, alpha = .5)
+    l1 = lines.Line2D([0.15, 1.95], [0.67, 0.67], transform=fig.transFigure, figure=fig, linestyle='-',linewidth = 1, alpha = .5)
     fig.lines.extend([l1])
-    l2 = lines.Line2D([0.15, 1.95], [0.07, 0.07], transform=fig.transFigure, figure=fig,color = 'gray', linestyle='-',linewidth = 1.1, alpha = .5)
+    l2 = lines.Line2D([0.15, 1.95], [0.07, 0.07], transform=fig.transFigure, figure=fig, linestyle='-',linewidth = 1, alpha = .5)
     fig.lines.extend([l2])
-        
     st.pyplot(fig)
-    @st.cache()
-    def get_data_from_csv():
-        df = pd.read_csv('data/supermarket_clean.csv')
-        return df
-
-    df = get_data_from_csv()
-
-    # header
-    # st.header(":bar_chart: Supermarket Dashboard")
+    
+    
     st.markdown("----")
 
-    ##### Create function for membership
-    # @st.cache
-    ##### Create function for membership
+    
+    # --- Code for line plot ----
     df_average_gender = df.groupby(['Date','Gender'])['Total'].mean().unstack().reset_index()
+    df_average_all = df.groupby(['Date'])['Total'].mean().reset_index()
     # title_one = 'Average customer daily purchasing based on Gender'
     title_two = 'green marker represent weekday and red marker represent weekend'
     y_title= 'Average $'
@@ -79,8 +78,9 @@ def app():
     colors = ['red' if int(pd.Timestamp(d).weekday()) >= 5 else 'black' for d in x_values]
     fig = go.Figure()
     # for val in ['Female','Male']:
-    if line_kind == 'Female' or line_kind == 'All':
-        title_one = 'Average Female customer daily purchasing'
+    if line_kind == 'Female':
+        title_one = 'Average female customer daily purchasing'
+        title_two = 'The average female customer spends also in the range of 100 to 600 dollars a day, and the overall average daily spending of female customers in the first quarter is $332 a little more than male customer'
         fig.add_trace(go.Scatter(x=df_average_gender['Date'], 
                                     y=df_average_gender['Female'], 
                                     name='Female',
@@ -107,9 +107,37 @@ def app():
         )
     if line_kind == 'Male':
         title_one = 'Average male customer daily purchasing'
+        title_two = 'the average male customer spends in the range of 100 to 600 dollars a day, and the overall average daily spending of male customers in the first quarter is $307'
         fig.add_trace(go.Scatter(x=df_average_gender['Date'], 
                                     y=df_average_gender['Male'], 
                                     name='Male',
+                                    mode='lines+markers',
+                                    marker=dict(color = colors),
+                                    line = dict(color = '#244747',
+                                    )
+                    )),
+        
+        fig.update_layout(
+            title=f'<b>{"<br>".join(wrap(title_one, 120))}</b><br><sub>{title_two}</sub>', # Passing the name of the chart
+            xaxis_title='', # Set the name of the x-axis
+            yaxis_title=y_title, # Set the name of the y-axis
+            plot_bgcolor='rgba(0,0,0,0)', # Setting the background color
+            hovermode='x', # Using the x-axis values for the records
+            # Setting the legend parameters
+            legend_orientation='h',
+            # Setting parameters for the text
+            font=dict(
+                family='Arials',
+                size=13, 
+                color='black'
+            )
+        )
+    if line_kind == 'All' :
+        title_one = 'Average daily purchasing per Invoice'
+        title_two = '''the average customer purchases per invoice tend to fluctuate, but we find there is one day that has a significant increase compared to before'''
+        fig.add_trace(go.Scatter(x=df_average_all['Date'], 
+                                    y=df_average_all['Total'], 
+                                    name='Average Daily Purchasing ',
                                     mode='lines+markers',
                                     marker=dict(color = colors),
                                     line = dict(color = '#244747',
@@ -134,7 +162,7 @@ def app():
     st.plotly_chart(fig, use_container_width=True)
 
     st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-    jenis = st.radio("Choose Data ", ('Product Category','Payment Method'))
+    jenis = st.radio("Choose Data ", ('Payment Method','Product Category'))
     col1, col2 = st.columns([2, 4])
     with col1:
         if jenis == 'Product Category':
@@ -190,13 +218,14 @@ def app():
                 fig.text(0.129, 0.98, 'Gender distribution by Product Category', fontsize=15, fontweight='bold', fontfamily='serif')   
                 fig.text(0.129, 0.9, 
                         '''
-                We find no significance difference between male and female in purchase every category,
+                We find no significance difference between male and female in purchases every category,
                 But we find something interesting in category Health and Beauty, male more dominant than female?''' , fontsize=12,fontfamily='serif')  
             if column == 'Payment':
-                fig.text(0.129, 0.98, 'Gender distribution by Payment', fontsize=15, fontweight='bold', fontfamily='serif')   
+                fig.text(0.129, 1, 'Gender distribution by Payment Method', fontsize=15, fontweight='bold', fontfamily='serif')   
                 fig.text(0.129, 0.9, 
                         '''
-                We see that Male more prefer to use E-wallet than Females
+                we see that women dominate the payment using credit card and cash, while men are more dominant 
+                in payments using E-wallet.
                 ''' , fontsize=12,fontfamily='serif') 
 
             for s in ['top', 'left', 'right', 'bottom']:
@@ -204,9 +233,9 @@ def app():
 
             ax.legend().set_visible(False)
 
-            fig.text(0.77,0.98,data1, fontweight="bold", fontfamily='serif', fontsize=15, color='#244747')
-            fig.text(0.819,0.98,"|", fontweight="bold", fontfamily='serif', fontsize=15, color='black')
-            fig.text(0.827,0.98,data2, fontweight="bold", fontfamily='serif', fontsize=15, color='#0e7687' )
+            fig.text(0.77,1,data1, fontweight="bold", fontfamily='serif', fontsize=15, color='#244747')
+            fig.text(0.819,1,"|", fontweight="bold", fontfamily='serif', fontsize=15, color='black')
+            fig.text(0.827,1,data2, fontweight="bold", fontfamily='serif', fontsize=15, color='#0e7687' )
         st.set_option('deprecation.showPyplotGlobalUse', False)
         if jenis == 'Product Category' :
             st.pyplot(percentage_distribution('Product Category','Gender','Male','Female'))
@@ -217,11 +246,11 @@ def app():
     # distribution by hour buying or rating service
     # Order for plotting categorical vars
     st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-    kind = st.radio("Choose Case", ('Hour Range','Rating Range'))
+    kind = st.radio("Choose Data", ('Hour Range','Rating Range'))
     if kind == 'Hour Range' :
         ab_order = ['9 ~ 11', '11 ~ 13', '13 ~ 15','15 ~ 17', '17 ~ 19', '19 ~ 21']
         color_map = ['#d4dddd' for _ in range(9)]
-        color_map[4] = '#244747' 
+        color_map[4] = color_map[1] = '#244747' 
         data = df['Hour Range'].value_counts()[ab_order]
 
         fig, ax = plt.subplots(1,1, figsize=(9, 6))
@@ -243,15 +272,18 @@ def app():
         # Title and sub-title
 
         fig.text(0.09, 1, 'Distribution by Time Buying', fontsize=20, fontweight='bold', fontfamily='serif')
-        fig.text(0.09, 0.95, 'The two most numerous age bands have been highlighted.', fontsize=12, fontweight='light', fontfamily='serif')
+        fig.text(0.09, 0.95, 'The two most numerous hour range have been highlighted.', fontsize=12, fontweight='light', fontfamily='serif')
 
         fig.text(1.185, 1.01, 'Insight', fontsize=20, fontweight='bold', fontfamily='serif')
 
         fig.text(1.185, 0.715, '''
-        The most frequent time bands are 17-19 . 
-        As we know, this time is finish working hour time.
-        From this result, we get information that 5 - 7 p.m is 
-        peak season
+        The two most frequent hour bands are 11-13 
+        and 17-19. as we know the two time spans
+        are the time for rest for workers and hours 
+        for going home from work. From this exploratory 
+        analysis result, we have to optimize the service 
+        at these hours. so that customers feel well served 
+        and loyal to our supermarket
         '''
                     , fontsize=12, fontweight='light', fontfamily='serif')
 
@@ -300,13 +332,18 @@ def app():
         # Title and sub-title
 
         fig.text(0.09, 1, 'Distribution by Rating of Supermarket service', fontsize=20, fontweight='bold', fontfamily='serif')
-        fig.text(0.09, 0.95, 'The two most numerous age bands have been highlighted.', fontsize=12, fontweight='light', fontfamily='serif')
+        fig.text(0.09, 0.95, 'The  most numerous rating bands have been highlighted.', fontsize=12, fontweight='light', fontfamily='serif')
 
         fig.text(1.185, 1.01, 'Insight', fontsize=20, fontweight='bold', fontfamily='serif')
 
         fig.text(1.185, 0.715, '''
-        The  most frequent rating bands are 5-7. This value is relevant to the result of exploratory data analysis
-        average rating is 7. With this result we can make conclusion that customer satisfied with customer service in supermarket
+        the most ratings given by customers are 
+        in the range of five to seven, we can interpret 
+        this figure that more than thirty percent of customers 
+        are quite satisfied with the service at the supermarket.
+        For customers who give a rating below five, 
+        of course we have to find out further 
+        what the cause is, as an effort to improve in the future
         '''
                     , fontsize=12, fontweight='light', fontfamily='serif')
 

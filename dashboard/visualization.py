@@ -2,26 +2,56 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 from plotly import graph_objs as go
-import seaborn as sns
 import numpy as np
-from plotly.subplots import make_subplots
 import plotly.express as px
 import matplotlib.ticker as mtick
+from textwrap import wrap
 # %matplotlib inline
 
 def app():
     pd.set_option('display.max_columns', 40)
     pd.set_option('display.max_rows', 100)
 
-    # st.set_page_config(page_title="Supermarket Dashboard", 
-    #                     page_icon=":bar_chart:", 
-    #                     layout="wide")'
-    # st.markdown(""" <style>
-    #     #MainMenu {visibility: hidden;}
-    #     footer {visibility: hidden;}
-    #     </style> """, unsafe_allow_html=True)
-
+   
     # --- Load Data From CSV ----
+    fig = plt.figure(figsize=(6,3),dpi=150)
+    gs = fig.add_gridspec(1, 1)
+    gs.update(wspace=0.2, hspace=0.4)
+    ax0 = fig.add_subplot(gs[0, 0])
+
+    background_color = "#fafafa"
+    fig.patch.set_facecolor(background_color) # figure background color
+    ax0.set_facecolor(background_color) 
+
+    ax0.text(1.167,0.85,"Customer Analysist Dashboard in Q1",color='#323232',fontsize=28, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(1.13,-0.35,"stand-out facts",color='lightgray',fontsize=28, fontweight='bold', fontfamily='monospace',ha='center')
+
+    ax0.text(0,0.4,"$400",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(0,0.1,"Average Spending",color='gray',fontsize=15, fontfamily='monospace',ha='center')
+
+    ax0.text(0.77,0.4,"7 of top 10",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(0.75,0.1,"Average Rating",color='gray',fontsize=15, fontfamily='monospace',ha='center')
+
+    ax0.text(1.5,0.4,"5 - 7 P.M",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(1.5,0.1,"Peak Hour",color='gray',fontsize=15, fontfamily='monospace',ha='center')
+
+    ax0.text(2.25,0.4,"E-wallet",color='#009473',fontsize=25, fontweight='bold', fontfamily='monospace',ha='center')
+    ax0.text(2.25,0.1,"Most Payment",color='gray',fontsize=15, fontfamily='monospace',ha='center')
+
+    ax0.set_yticklabels('')
+    ax0.set_xticklabels('')
+    ax0.tick_params(axis='both',length=0)
+
+    for s in ['top','right','left','bottom']:
+        ax0.spines[s].set_visible(False)
+        
+    import matplotlib.lines as lines
+    l1 = lines.Line2D([0.15, 1.95], [0.67, 0.67], transform=fig.transFigure, figure=fig,color = 'gray', linestyle='-',linewidth = 1.1, alpha = .5)
+    fig.lines.extend([l1])
+    l2 = lines.Line2D([0.15, 1.95], [0.07, 0.07], transform=fig.transFigure, figure=fig,color = 'gray', linestyle='-',linewidth = 1.1, alpha = .5)
+    fig.lines.extend([l2])
+        
+    st.pyplot(fig)
     @st.cache()
     def get_data_from_csv():
         df = pd.read_csv('data/supermarket_clean.csv')
@@ -30,40 +60,83 @@ def app():
     df = get_data_from_csv()
 
     # header
-    st.header(":bar_chart: Supermarket Dashboard")
+    # st.header(":bar_chart: Supermarket Dashboard")
     st.markdown("----")
 
     ##### Create function for membership
     # @st.cache
     ##### Create function for membership
     df_average_gender = df.groupby(['Date','Gender'])['Total'].mean().unstack().reset_index()
+    # title_one = 'Average customer daily purchasing based on Gender'
+    title_two = 'green marker represent weekday and red marker represent weekend'
+    y_title= 'Average $'
 
-
+    line_kind = st.radio("Choose Data ", ('All','Male','Female'))
     x_values = pd.date_range(start=pd.Timestamp('2018-01-01'), end=pd.Timestamp('2019-01-01'), freq='1 D')
-    # making a random time series
-    y_values = np.random.randn(len(x_values))
+
     # making color list
     # red if the day is saturday or sunday else green
-    colors = ['red' if int(pd.Timestamp(d).weekday()) >= 5 else 'green' for d in x_values]
+    colors = ['red' if int(pd.Timestamp(d).weekday()) >= 5 else 'black' for d in x_values]
     fig = go.Figure()
     # for val in ['Female','Male']:
-    fig.add_trace(go.Scatter(x=df_average_gender['Date'], 
-                                y=df_average_gender['Female'], 
-                                name='Female',
-                                mode='lines+markers',
-                                marker=dict(color = colors)
-                )),
-    fig.layout.update(title_text='Average customer daily purchasing based on Gender, green marker represent weekday and red marker represent weekend', hovermode='x')
-
+    if line_kind == 'Female' or line_kind == 'All':
+        title_one = 'Average Female customer daily purchasing'
+        fig.add_trace(go.Scatter(x=df_average_gender['Date'], 
+                                    y=df_average_gender['Female'], 
+                                    name='Female',
+                                    mode='lines+markers',
+                                    marker=dict(color = colors),
+                                    line = dict(color = '#244747',
+                                    )
+                    )),
+        
+        fig.update_layout(
+            title=f'<b>{"<br>".join(wrap(title_one, 70))}</b><br><sub>{title_two}</sub>', # Passing the name of the chart
+            xaxis_title='', # Set the name of the x-axis
+            yaxis_title=y_title, # Set the name of the y-axis
+            plot_bgcolor='rgba(0,0,0,0)', # Setting the background color
+            hovermode='x', # Using the x-axis values for the records
+            # Setting the legend parameters
+            legend_orientation='h',
+            # Setting parameters for the text
+            font=dict(
+                family='Arials',
+                size=13, 
+                color='black'
+            )
+        )
+    if line_kind == 'Male':
+        title_one = 'Average male customer daily purchasing'
+        fig.add_trace(go.Scatter(x=df_average_gender['Date'], 
+                                    y=df_average_gender['Male'], 
+                                    name='Male',
+                                    mode='lines+markers',
+                                    marker=dict(color = colors),
+                                    line = dict(color = '#244747',
+                                    )
+                    )),
+        
+        fig.update_layout(
+            title=f'<b>{"<br>".join(wrap(title_one, 70))}</b><br><sub>{title_two}</sub>', # Passing the name of the chart
+            xaxis_title='', # Set the name of the x-axis
+            yaxis_title=y_title, # Set the name of the y-axis
+            plot_bgcolor='rgba(0,0,0,0)', # Setting the background color
+            hovermode='x', # Using the x-axis values for the records
+            # Setting the legend parameters
+            legend_orientation='h',
+            # Setting parameters for the text
+            font=dict(
+                family='Arials',
+                size=13, 
+                color='black'
+            )
+        )
     st.plotly_chart(fig, use_container_width=True)
 
     st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-    jenis = st.radio("Pilih Kasus ", ('Product Category','Payment Method'))
+    jenis = st.radio("Choose Data ", ('Product Category','Payment Method'))
     col1, col2 = st.columns([2, 4])
-    # jenis = st.radio("Pilih Kasus ", ('Product Category','Payment Method'))
     with col1:
-        # st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
-        # jenis = st.radio("Pilih Kasus ", ('Product Category','Payment Method'))
         if jenis == 'Product Category':
             data_pie =  df.groupby(['Product Category'])['Invoice ID'].count().reset_index().rename(columns = {'Invoice ID':'Total'})
             fig_category =  px.pie(data_pie, values='Total', 
@@ -141,13 +214,10 @@ def app():
             st.pyplot(percentage_distribution('Payment','Gender','Male','Female'))
         
 
-    # distribution by hour buying
+    # distribution by hour buying or rating service
     # Order for plotting categorical vars
     st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
     kind = st.radio("Choose Case", ('Hour Range','Rating Range'))
-    print("ck")
-    # function generate barplot
-    # Order for plotting categorical vars
     if kind == 'Hour Range' :
         ab_order = ['9 ~ 11', '11 ~ 13', '13 ~ 15','15 ~ 17', '17 ~ 19', '19 ~ 21']
         color_map = ['#d4dddd' for _ in range(9)]
@@ -178,13 +248,10 @@ def app():
         fig.text(1.185, 1.01, 'Insight', fontsize=20, fontweight='bold', fontfamily='serif')
 
         fig.text(1.185, 0.715, '''
-        The two most frequent age bands are 20-30 
-        and 30-40. In the early stages of our 
-        exploratory analysis, we can already start
-        to think about who our most important customers
-        are and, importantly, how we might tailor our
-        marketing activities or promotional offers based
-        on customer segments.
+        The most frequent time bands are 17-19 . 
+        As we know, this time is finish working hour time.
+        From this result, we get information that 5 - 7 p.m is 
+        peak season
         '''
                     , fontsize=12, fontweight='light', fontfamily='serif')
 
@@ -198,26 +265,20 @@ def app():
 
         # Axis labels
 
-        plt.xlabel("Time banding", fontsize=12, fontweight='light', fontfamily='serif',loc='left',y=-1.5)
+        plt.xlabel("Time Range", fontsize=12, fontweight='light', fontfamily='serif',loc='left',y=-1.5)
 
-
-        print('cek')
-        # thicken the bottom line if you want to
         plt.axhline(y = 0, color = 'black', linewidth = 1.3, alpha = .7)
 
         import matplotlib.lines as lines
         l1 = lines.Line2D([1.05, 1.05], [0, 1.05], transform=fig.transFigure, figure=fig,color='black',lw=0.2)
         fig.lines.extend([l1])
 
-        # st.set_option('deprecation.showPyplotGlobalUse', False)
-        # if kind == 'Hour Range' :
         st.pyplot(fig)
-        # if kind == 'Rating Range':
-        # st.pyplot(bar_plot('Rating Range'))
+      
     else :
         ab_order = ['3 ~ 5','5 ~ 7', '7 ~ 9', '9 ~ 10']
         color_map = ['#d4dddd' for _ in range(9)]
-        color_map[2] = '#244747' 
+        color_map[1] = '#244747' 
         data = df['Rating Range'].value_counts()[ab_order]
 
         fig, ax = plt.subplots(1,1, figsize=(9, 6))
@@ -228,7 +289,7 @@ def app():
         #annotations
         for i in data.index:
             ax.annotate(f"{data[i]}", 
-                            xy=(i, data[i] + 3), #i like to change this to roughly 5% of the highest cat
+                            xy=(i, data[i] + 3), 
                             va = 'center', ha='center',fontweight='light', fontfamily='serif')
 
         for s in ['top', 'left', 'right']:
@@ -238,19 +299,14 @@ def app():
 
         # Title and sub-title
 
-        fig.text(0.09, 1, 'Distribution by Time Buying', fontsize=20, fontweight='bold', fontfamily='serif')
+        fig.text(0.09, 1, 'Distribution by Rating of Supermarket service', fontsize=20, fontweight='bold', fontfamily='serif')
         fig.text(0.09, 0.95, 'The two most numerous age bands have been highlighted.', fontsize=12, fontweight='light', fontfamily='serif')
 
         fig.text(1.185, 1.01, 'Insight', fontsize=20, fontweight='bold', fontfamily='serif')
 
         fig.text(1.185, 0.715, '''
-        The two most frequent age bands are 20-30 
-        and 30-40. In the early stages of our 
-        exploratory analysis, we can already start
-        to think about who our most important customers
-        are and, importantly, how we might tailor our
-        marketing activities or promotional offers based
-        on customer segments.
+        The  most frequent rating bands are 5-7. This value is relevant to the result of exploratory data analysis
+        average rating is 7. With this result we can make conclusion that customer satisfied with customer service in supermarket
         '''
                     , fontsize=12, fontweight='light', fontfamily='serif')
 
@@ -264,7 +320,7 @@ def app():
 
         # Axis labels
 
-        plt.xlabel("Time banding", fontsize=12, fontweight='light', fontfamily='serif',loc='left',y=-1.5)
+        plt.xlabel("Rating Range", fontsize=12, fontweight='light', fontfamily='serif',loc='left',y=-1.5)
 
 
         print('cek')
@@ -275,10 +331,7 @@ def app():
         l1 = lines.Line2D([1.05, 1.05], [0, 1.05], transform=fig.transFigure, figure=fig,color='black',lw=0.2)
         fig.lines.extend([l1])
 
-        # st.set_option('deprecation.showPyplotGlobalUse', False)
-        # if kind == 'Hour Range' :
         st.pyplot(fig)
-        # if kind == 'Rating Range':
-        # st.pyplot(bar_plot('Rating Range'))
+       
 
         

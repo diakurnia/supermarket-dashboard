@@ -1,5 +1,3 @@
-https://diakurniadewi-batch6.herokuapp.com/
-
 # Supermarket Customer Behavior Dashboard
 
 ## Dashboard Link

@@ -48,7 +48,7 @@ def app():
     st.header('Introduction')
     st.write('''At a glance, we can see that the average daily purchases in supermarket store between male and female customer is similar. 
             But, there's one unit difference between both of them. 
-            So, before making any assumption, we have to make sure that the difference is statistically significant and is not happening by chance. 
+            So, before making any assumption, we have to make sure that the difference is statistically significant. 
             Therefore, we need to conduct hypothesis testing to prove our assumption.''')
 
     # part-2

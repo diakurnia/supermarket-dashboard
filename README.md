@@ -32,9 +32,10 @@ berikut merupakan link dashboard yang sudah dibuat: https://diakurniadewi-batch6
   - Rating: Customer stratification rating on their overall shopping experience (On a scale of 1 to 10)
   
 # Data preparation
- - EDA Packages: Pandas, Numpy, Matplotlib, Seaborn
- - Dashboard Library : Streamlit
+ - EDA Libraries : Pandas, Numpy, Matplotlib, Seaborn.
+ - Dashboard Library : Streamlit.
 
 # Data Cleansing
+ - Handling data type of columns that does not match its representation.
+ - Delete a column that has the exact same value as another column.
 
-# Exploratory Data Analysis
